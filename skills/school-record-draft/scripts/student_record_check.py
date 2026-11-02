@@ -12,7 +12,7 @@ NEIS 입력 전에 기계적으로 검사한다. 사람이 매번 눈으로 세�
   4. 문체      — 개조식 서술형(~함/~하였음/~보임 등) 종결 여부
   5. 개별성    — 여러 학생 초안 간 문장 중복률
   6. AI 문체   — student_record_humanize.py(im-not-ai 학생부판) 틀 표의 처방 대상(WARN), E-1 리듬(INFO)
-  7. 윤문 게이트 — --before 원래초안: 같은 모듈의 5축 게이트 P0~P5(변경률·목표·대구 전멸·주입·수치·서법)
+  7. 윤문 게이트 — --before 원래초안: 같은 모듈의 게이트 P0~P6(변경률·목표·대구 전멸·주입·수치·서법·앵커)
 
 규칙 정본: ../references/2. 기재요령 핵심 (2026 중학교).md
 
@@ -304,7 +304,7 @@ def check_one(name, text, kind, cap_bytes):
 
 
 def rewrite_gate(before, after):
-    """AI 문체를 고친 뒤의 결정적 검증 — student_record_humanize 의 5축 게이트(P0~P5)를 그대로 돌린다.
+    """AI 문체를 고친 뒤의 결정적 검증 — student_record_humanize 의 게이트(P0~P6)를 그대로 돌린다(앵커는 원문 자동 추출).
 
     중단(변경률 50% 이상)과 수치 주입·소실은 ERROR(출력 전에 고친다), 나머지 경고 축은 WARN.
     """
@@ -330,6 +330,8 @@ def rewrite_gate(before, after):
         out.append(("게이트:P3 수치", "ERROR", "'%s' 이(가) 고친 글에서 빠짐. 수치는 건드리지 않음" % n))
     for l in rep["modality"]["lost_pairs"]:
         out.append(("게이트:P5 서법", "WARN", "[%s] '%s' → '%s' — 원래 문장으로 되돌릴 것(restore)" % (l["kind"], l["before"][:30], l["after"][:30])))
+    for a in rep["anchors"]["lost"]:
+        out.append(("게이트:P6 앵커", "WARN", "'%s' 이(가) 고친 글에서 사라짐(%s). 사실이면 되살리고, 지운 껍데기면 그대로 둘 것" % (a, rep["anchors"]["source"])))
     return out
 
 

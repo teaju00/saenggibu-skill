@@ -12,7 +12,7 @@ MIT 라이선스 — 저작권 고지와 허락 고지는 이 설명 끝에 그�
              (원본 agents/humanize-diagnostician · monolith · finalizer + references/quick-rules.md)
   restore    서법이 사라진 문장만 원문으로 되돌린 뒤, 윤문이 새로 만든 연결어미 쉼표를 지운다
              (원본 restore_modality.py + strip_injected_commas.py — Phase 2.4)
-  gate       5축 결정적 게이트 P0~P5. 종료 코드 0 수렴 · 1 경고 · 2 중단 · 3 판정 불가
+  gate       결정적 게이트 P0~P5(원본 5축) + P6 앵커(학생부판 추가). 종료 코드 0 수렴 · 1 경고 · 2 중단 · 3 판정 불가
              (원본 verify_gates.py + checks.py — Phase 2.5)
   calibrate  사람이 쓴 학생부 글로 기준선(평균 · 표준편차)을 계산한다(원본 build_calibration.py 자리)
   metrics    점수 블록만 본다
@@ -40,6 +40,9 @@ MIT 라이선스 — 저작권 고지와 허락 고지는 이 설명 끝에 그�
   10. 대구 전멸(P2) 원본은 원문 5회 이상일 때만 본다. 학생부는 짧아 2회 이상에서 0회가 되면 실패다
                   (quick-rules C-8 '한 번만 살리고 … 전멸 금지').
   11. 위생        ZWJ · ZWNJ 를 모두 지운다(원본은 이모지 옆이면 남긴다 — 학생부에는 이모지가 없다).
+  12. 앵커(P6)    원본에 없는 축. 원본은 내용 앵커 보존을 에이전트 자기 점검에만 맡긴다. 여기서는 진단 '보존 지침'의
+                  따옴표 낱말(없으면 원문에서 처방 대상 틀을 뺀 내용어)이 고친 글에서 통째로 사라지면 경고한다.
+                  노력 수준 비교(2026-11-02)에서 낮음 · 중간이 진단이 남기라고 한 앵커를 지운 채 게이트를 통과했다.
 
 ---
 MIT License
@@ -923,6 +926,114 @@ def dropped_numbers(original: str, output: str) -> list[str]:
 
 
 # ===========================================================================
+# 내용 앵커 대조 (P6 — 원본에 없음, 머리말 12)
+# 원본은 앵커 보존을 윤문 · 마무리 에이전트의 자기 점검에만 맡긴다. 그런데 standard 경로는 게이트가
+# 0이면 마무리를 건너뛰어, 노력 수준 비교(2026-11-02)에서 낮음 · 중간이 진단이 '남길 낱말'로 적은
+# '알고리즘의 효율성'을 지운 채 통과했다. 낱말이 통째로 사라졌는지만 코드로 본다.
+# 자동으로 되살리지 않는다 — 어느 문장에 넣을지는 기계가 못 정한다(마무리가 정한다).
+# ===========================================================================
+
+_JOSA = tuple(sorted(("에서의", "으로의", "에게서", "으로써", "으로는", "에서는", "에서도", "까지", "부터", "에서",
+                      "에게", "으로", "처럼", "보다", "에는", "에도", "로는", "와의", "과의", "을", "를", "이", "가",
+                      "은", "는", "의", "에", "로", "와", "과", "도", "만"), key=len, reverse=True))
+# 맨 어절이 용언으로 끝나는지. 명사 끝 글자와 겹치는 어미(-인 변인 · -서 순서 · -면 장면 · -기 동기 · -지 가지 ·
+# -고 사고 · -여 참여 · -임 게임 · -자 문자 · -요 필요)는 홑글자로 넣지 않고 '하-' · '되-' 결합형으로만 본다.
+_VERB_END = re.compile(r"(?:함|됨|짐|봄|줌|냄|씀|듦|있음|없음|었음|았음|였음|하였|했|며|면서|지만|도록|려고|고자|게|워|다|듯"
+                       r"|는|은|운|던|한|된|할|될|하고|되고|지고|하여|해|해서|어서|아서|여서|워서|하면|되면|으면|하기|되기|하지|되지)$")
+_VERB_TAIL = re.compile(r"(?:하|되|시키|하였|했|됐|있|없|이었|였)$")
+# 평가 명사 — 틀을 걷으면 같이 빠지는 것이 정상이라 원문 자동 추출에서 뺀다('~적' 평가 관형어도 뺀다).
+_ANCHOR_STOP = frozenset({"학생", "모습", "태도", "역량", "능력", "경험", "성장", "계기", "자세", "중요성", "가능성", "잠재력",
+                          "사고력", "탐구력", "창의력", "문제해결력", "리더십", "열정", "자신감", "흥미"})
+# 이 틀이 있는 문장은 통째로 지우는 것이 처방이라(학-2 총평 · D-11 결말 시간어 · D-12 과제 문패) 그 문장의 낱말은 뺀다.
+_WHOLE_SENTENCE_TELLS = frozenset({"학-2", "D-11", "D-12"})
+_QUOTED_RE = re.compile(r"'([^'\n]+)'|‘([^’\n]+)’|\"([^\"\n]+)\"|“([^”\n]+)”")
+
+
+def content_stems(text: str) -> list[str]:
+    """어절에서 조사를 떼어 두 글자 이상 내용어 후보를 뽑는다(형태소 분석기 없는 근사 — 원본과 같은 stdlib 원칙)."""
+    out = []
+    for tok in _tokens(text):
+        if not re.fullmatch(r"[가-힣]+", tok):
+            continue  # 수치 · 영문 · 기호가 섞인 낱말은 수치 축(P3)이 본다
+        stem = next((tok[:-len(j)] for j in _JOSA if tok.endswith(j) and len(tok) - len(j) >= 2), None)
+        if stem is None:
+            if _VERB_END.search(tok):
+                continue
+            stem = tok
+        if len(stem) >= 2 and not _VERB_TAIL.search(stem):
+            out.append(stem)
+    return out
+
+
+_NEGATED_AFTER = re.compile(r"^\s*(?:으로|로|처럼)\s*(?:바꾸지|올리지|고치지|쓰지|넣지|만들지)")
+
+
+def anchors_from_diagnosis(diagnosis: str) -> list[str]:
+    """진단 '## 보존 지침' 절에서 따옴표로 감싼 낱말 · 구절.
+
+    "'노력함'을 '해결함'으로 바꾸지 않음"처럼 금지 예시로 든 쪽(뒤에 '~으로 바꾸지 않음'이 붙은 따옴표)은 뺀다.
+    """
+    m = re.search(r"^##\s*보존\s*지침\s*$(.*?)(?=^##\s|\Z)", diagnosis, re.M | re.S)
+    if not m:
+        return []
+    body = m.group(1)
+    return [next(g for g in q.groups() if g) for q in _QUOTED_RE.finditer(body)
+            if not _NEGATED_AFTER.match(body[q.end():])]
+
+
+def anchors_from_text(text: str) -> list[str]:
+    """진단이 없을 때 원문에서 뽑는다. 처방 대상 틀이 걸린 어절과 통째 삭제 처방 문장은 뺀다."""
+    spans, whole = [], set()
+    for tid, _, _, pattern, least, _, _, _ in TELLS:
+        if tid == "D-11" or not pattern:
+            continue
+        found = [m.span() for m in re.finditer(pattern, text)]
+        if len(found) >= least:
+            spans += found
+            if tid in _WHOLE_SENTENCE_TELLS:
+                whole.update(a for a, _ in found)
+    for h in _d11_hits(text):
+        whole.add(text.find(h))
+    out, pos = [], 0
+    for sent in split_sentences(text):
+        start = text.find(sent, pos)
+        end = start + len(sent)
+        pos = end
+        if any(start <= w < end for w in whole):
+            continue
+        for w in re.finditer(r"\S+", sent):
+            a, b = start + w.start(), start + w.end()
+            if any(a < e and s < b for s, e in spans):
+                continue
+            out += [s for s in content_stems(w.group(0)) if s not in _ANCHOR_STOP and not s.endswith("적")]
+    return list(dict.fromkeys(out))
+
+
+_AMBIGUOUS_TAIL = "어아여고지기면자서"  # 명사 끝 글자이기도 하고 용언 어미이기도 한 글자
+
+
+def _present(stem: str, flat: str) -> bool:
+    if stem in flat:
+        return True
+    # '넣어' → '넣는'처럼 활용만 바뀐 용언: 마지막 글자를 뗀 어간이 어절 머리에 있으면 남은 것으로 본다.
+    return (stem[-1] in _AMBIGUOUS_TAIL
+            and re.search(r"(?:^|\s)" + re.escape(stem[:-1]) + r"[가-힣]", flat) is not None)
+
+
+def lost_anchors(after: str, anchors: list[str]) -> list[str]:
+    """앵커 구절이 그대로 있으면 통과, 아니면 그 안의 내용어가 고친 글에 한 번도 없을 때 소실."""
+    flat = re.sub(r"\s+", " ", after)
+    lost = []
+    for a in anchors:
+        if re.sub(r"\s+", " ", a.strip()) in flat:
+            continue
+        for s in content_stems(a):
+            if not _present(s, flat) and s not in lost:
+                lost.append(s)
+    return lost
+
+
+# ===========================================================================
 # 구조 게이트 (원본 verify_gates.py) — P0~P5
 # ===========================================================================
 
@@ -971,8 +1082,9 @@ def judge_s1(z_before: dict, z_after: dict) -> tuple[list[dict], bool]:
     return res, warn
 
 
-def run_gate(before: str, after: str, baseline: dict | None = None) -> tuple[dict, int, list[str]]:
-    """(보고, 종료 코드, 출력 줄). 0 수렴 · 1 경고 · 2 중단."""
+def run_gate(before: str, after: str, baseline: dict | None = None,
+             diagnosis: str | None = None) -> tuple[dict, int, list[str]]:
+    """(보고, 종료 코드, 출력 줄). 0 수렴 · 1 경고 · 2 중단. diagnosis 가 있으면 P6 앵커를 보존 지침에서 뽑는다."""
     before, after = strip_summary_block(before), strip_summary_block(after)
     baseline = load_baseline() if baseline is None else baseline
     rep, lines, warn = {"genre": GENRE}, [], False
@@ -1039,6 +1151,17 @@ def run_gate(before: str, after: str, baseline: dict | None = None) -> tuple[dic
         lines.append(f"          [{l['kind']}] {l['before'][:34]} → {l['after'][:34]}")
     if unsure:
         lines.append(f"          관찰: 짝 유사도가 낮아 판정 보류 {len(unsure)}건 (확인 요망)")
+
+    anchors = anchors_from_diagnosis(diagnosis) if diagnosis else []
+    source = "진단 보존 지침"
+    if not anchors:
+        anchors, source = anchors_from_text(before), "원문 자동 추출"
+    lost = lost_anchors(after, anchors)
+    warn |= bool(lost)
+    rep["anchors"] = {"source": source, "count": len(anchors), "lost": lost,
+                      "verdict": f"WARN — 소실 {len(lost)}개" if lost else "OK"}
+    lines.append(f"[P6 앵커] {source} {len(anchors)}개 중 소실 {len(lost)}개 — {rep['anchors']['verdict']}"
+                 + (f": {', '.join(repr(x) for x in lost[:8])} (마무리에서 되살릴지 판단)" if lost else ""))
 
     code = 2 if abort else (1 if warn else 0)
     verdict = {2: "ABORT — 강제 중단. 윤문본 채택 금지", 1: "WARN — 경고. 해당 축 고지 + 마무리 승급", 0: "OK — 수렴"}[code]
@@ -1195,13 +1318,16 @@ def cmd_restore(a) -> int:
 
 
 def cmd_gate(a) -> int:
+    diag_path = Path(a.diagnosis) if a.diagnosis else None
     if a.before and a.after:
         before, after = _read(Path(a.before)), _read(Path(a.after))
         out_dir = None
     else:
         d = _run_dir_arg(a)
         before, after, out_dir = _read(d / "01_input.txt"), _read(d / "final.txt"), d
-    rep, code, lines = run_gate(before, after)
+        if diag_path is None and (d / "02_diagnosis.md").exists():
+            diag_path = d / "02_diagnosis.md"
+    rep, code, lines = run_gate(before, after, diagnosis=_read(diag_path) if diag_path else None)
     print("\n".join(lines))
     if out_dir:
         _write(out_dir / "04_gate.json", json.dumps(rep, ensure_ascii=False, indent=1))
@@ -1264,10 +1390,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--run-dir", required=True)
     p.add_argument("--all-commas", action="store_true", help="진단이 C-11 을 지목했을 때만 — 전 문장 쉼표 제거")
     p.set_defaults(fn=cmd_restore)
-    p = sub.add_parser("gate", help="5축 게이트(0 수렴 · 1 경고 · 2 중단 · 3 판정 불가)")
+    p = sub.add_parser("gate", help="게이트 P0~P6(0 수렴 · 1 경고 · 2 중단 · 3 판정 불가)")
     p.add_argument("--run-dir")
     p.add_argument("--before")
     p.add_argument("--after")
+    p.add_argument("--diagnosis", help="진단 파일(없으면 run-dir 의 02_diagnosis.md, 그것도 없으면 원문에서 앵커를 뽑는다)")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_gate)
     p = sub.add_parser("metrics", help="점수 블록만 출력")

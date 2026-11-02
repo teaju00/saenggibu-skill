@@ -6,7 +6,7 @@
 - 바로 쓰지 않고 먼저 묻습니다. 성취기준 원문, 관찰 메모, 목표 분량(Byte)을 확인한 뒤 씁니다.
 - 교사가 주지 않은 사실은 쓰지 않고 `[교사 확인 필요]`로 비워 둡니다.
 - 초안 끝에 교사가 확인할 목록(사실, 과장, 항목 적합성)을 붙입니다.
-- 초안을 낸 뒤 AI처럼 보이는 문장 틀("단순한 X를 넘어", "~로 이어짐", 과장 평가어, 총평 마무리 등)을 걷어 냅니다. 한국어 윤문 스킬 [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 작동 방식(점수 → 진단 → 윤문 → 서법 복원 → 5축 게이트)을 학생부에 맞게 옮겼습니다. 고친 뒤에는 수치·서법(노력함, ~할 수 있음)이 그대로인지, 너무 많이 고치지 않았는지, 새 틀을 만들지 않았는지 검사합니다. 작업 파일은 로컬 앱 데이터 폴더에만 두고 동기화 폴더에는 쓰지 않습니다.
+- 초안을 낸 뒤 AI처럼 보이는 문장 틀("단순한 X를 넘어", "~로 이어짐", 과장 평가어, 총평 마무리 등)을 걷어 냅니다. 한국어 윤문 스킬 [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 작동 방식(점수 → 진단 → 윤문 → 서법 복원 → 게이트)을 학생부에 맞게 옮겼습니다. 고친 뒤에는 수치·서법(노력함, ~할 수 있음)·핵심 낱말이 그대로인지, 너무 많이 고치지 않았는지, 새 틀을 만들지 않았는지 검사합니다. 작업 파일은 로컬 앱 데이터 폴더에만 두고 동기화 폴더에는 쓰지 않습니다.
 - 코드 실행이 되는 환경에서는 검사 스크립트로 Byte, 금칙어, 문자 규칙, 명사형 종결, AI 문체 틀, 학생 간 문장 중복을 기계 검사합니다.
 
 ## 설치
@@ -65,6 +65,8 @@ Claude Code는 플러그인으로도 설치할 수 있습니다. Claude Code 안
 /plugin install school-record-draft@saenggibu-skill
 ```
 
+플러그인으로 설치하면 `/생기부`로 부를 수 있습니다. 스킬 이름 그대로 `/school-record-draft`도 됩니다.
+
 Gemini CLI는 자체 명령으로도 됩니다.
 
 ```bash
@@ -122,6 +124,7 @@ skills/school-record-draft/
   scripts/student_record_check.py           초안 기계 검사(표준 라이브러리만 사용)
   scripts/student_record_humanize.py        AI 문체 점검의 점수·경로·서법 복원·게이트(im-not-ai 학생부판)
   scripts/student_record_humanize_baseline.json  지표 기준선(처음엔 원본 에세이 기준 빌림, calibrate 로 보정)
+commands/생기부.md                          Claude Code 플러그인용 `/생기부` 별칭
 tools/
   바이트 계산기.html                        교사용 오프라인 Byte 계산기
   build_release.py                          Releases zip 두 개(Claude용, Gemini용)를 만드는 스크립트
