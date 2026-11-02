@@ -8,7 +8,7 @@ NEIS 입력 전에 기계적으로 검사한다. 사람이 매번 눈으로 세�
 검사 항목
   1. 분량      — NEIS Byte(한글 3B / 그 외 1B) 기준 목표 대비 초과·임박·미달
   2. 금칙어    — 기재금지사항에 해당하는 단어·패턴 탐지
-  3. 문자      — 한자·영어 외 외국 문자(기재 불가), 글머리표·번호 매기기(지양)
+  3. 문자      — 한자·영어 외 외국 문자(기재 불가), 글머리표·번호·특수문자(지양)
   4. 문체      — 개조식 서술형(~함/~하였음/~보임 등) 종결 여부
   5. 개별성    — 여러 학생 초안 간 문장 중복률
 
@@ -77,13 +77,18 @@ FOREIGN_SCRIPT = [
 ]
 BULLET = (r"(?m)^\s*(?:[0-9]+[.)]|[-*•·▪○●□■◆▶]|[①-⑳])\s*",
           "특수문자·문단 구분 기호(번호) 입력 지양. 문장으로 이어 쓸 것")
+# 문장 안 특수문자(기재요령 30쪽 '지양'). 가운뎃점·괄호·따옴표·마침표류는 일상 표기라 뺀다.
+SPECIAL = (r"[→←↑↓⇒⇔※★☆♥♡◎◇◆△▲▽▼▷▶■□●○•▪#@&~^|<>「」『』【】《》〈〉{}\[\]]",
+           "특수문자 입력 지양. 낱말로 풀어 쓸 것")
 
 # 기재금지사항 탐지 패턴. (라벨, 정규식, 설명)
 # 오탐이 나올 수 있는 항목은 [주의]로 표시하고 사람이 최종 판단한다.
 BANNED = [
-    ("대회·수상", r"대회|수상|입상|우승|준우승|최우수상|우수상|장려상|표창|공모전|경진",
+    ("대회·수상", r"대회|수상|입상|우승|준우승|최우수상|우수상|장려상|공모전|경진",
      "'대회' 용어 자체가 수상경력 이외 항목에서 금칙어. 명칭을 행사로 바꾸는 우회도 불가"),
-    ("자격증", r"자격증|자격 취득|급수|검정 합격|취득함",
+    ("교외상", r"표창|감사장|공로상|(장관|교육감|교육장|시장|군수|구청장|도지사|의장|회장)상",
+     "교외 기관·단체(장)에게 받은 상(표창장·감사장·공로상 포함) 기재 불가"),
+    ("자격증", r"자격증|자격(을)? ?취득|[0-9]+급(을)? ?(자격|취득|합격)|급수 ?(시험|자격|취득)|검정 합격|자격시험",
      "자격증 명칭 및 취득 사실 기재 불가"),
     ("공인어학시험", r"TOEIC|TOEFL|TEPS|HSK|JPT|JLPT|DELF|DALF|TESTDAF|TORFL|DELE|한자능력검정|한검",
      "공인어학시험 참여 사실·성적·수상실적 기재 불가"),
@@ -101,33 +106,43 @@ BANNED = [
      "[주의] 구체적 대학명·기관명 기재 불가. 교육부/시도교육청/교육지원청 계열만 예외"),
     ("상호·제품명", r"구글|Google|코랩|Colab|엑셀|Excel|파워포인트|PowerPoint|한글과컴퓨터|"
                     r"챗지피티|ChatGPT|GPT-?[0-9]|Claude|클로드|제미나이|Gemini|퍼플렉시티|Perplexity|"
-                    r"유튜브|YouTube|네이버|카카오|아두이노 정품|엔트리봇",
+                    r"유튜브|YouTube|네이버|카카오|인스타그램|틱톡|TikTok|"
+                    r"아두이노|Arduino|마이크로비트|micro:bit|햄스터봇|스크래치|Scratch|엔트리|앱 ?인벤터|"
+                    r"티처블 ?머신|Teachable Machine|오토드로우|파파고|뤼튼|코파일럿|Copilot|"
+                    r"캔바|Canva|미리캔버스|패들렛|Padlet|띵커벨|클래스팅|노션|Notion|ZEP|한컴|아이패드|iPad|크롬북",
      "상업 제품명·브랜드명 기재 불가. 일반 기술·제품군 명칭으로 치환할 것"),
     ("강사명", r"강사(님)?(이|가|은|께서)|외부 강사 [가-힣]{2,4}",
      "[주의] 강사명 기재 불가"),
     ("MOOC", r"K-?MOOC|MOOC|KOCW",
      "K-MOOC, MOOC, KOCW 기재 불가"),
     ("방과후학교", r"방과후학교|방과후 학교|방과후 수업",
-     "[주의] 다른 항목에 입력할 수 없는 내용(방과후학교 활동 등)은 행특에도 입력 불가"),
+     "방과후학교 활동은 세특·행특 등에 기재 불가(기재요령 104·116쪽)"),
+    ("정치활동", r"정당 ?(활동|가입)|정당에 가입|선거운동|당원으로|정치 ?활동",
+     "[주의] 정치활동 참여 관련 사항은 출결 특기사항 외 어디에도 기재 불가(기재요령 56쪽)"),
+    ("기부", r"기부",
+     "[주의] 물품·현금의 단순 기부는 어느 항목에도 기재 불가(기재요령 82쪽)"),
 ]
 
 # 행특 전용 추가 금칙(개인 봉사활동)
 BANNED_HAENGTEUK = [
     ("개인 봉사활동", r"개인(적으로)? (봉사|봉사활동)|가족과 함께 봉사",
      "개인계획에 따른 봉사활동 특기사항은 행특 기재 불가(학교교육계획 봉사활동만 가능)"),
+    ("영재교육", r"영재교육|영재학급|영재학교",
+     "영재교육 관련 내용은 행특 기재 불가(기재요령 116쪽). 관련 교과 세특의 영재교육 기록사항에 입력"),
 ]
 
-# 세특 전용 추가 금칙(항목 혼동)
-BANNED_SETEUK = [
-    ("영재교육 위치", r"영재교육원|영재학급|영재학교",
-     "[주의] 영재교육 관련 내용은 행특이 아닌 관련 교과 세특에 입력. 기관 구체명은 기재 불가"),
+# 창체·자유학기 추가 금칙(항목 혼동). 세특·개인별세특은 영재교육 이수 내용을 쓸 수 있다(104쪽).
+BANNED_CHANGCHE = [
+    ("영재교육 위치", r"영재교육|영재학급|영재학교",
+     "[주의] 영재교육 이수 내용은 관련 교과 세특(영재교육 기록사항) 또는 개인별 세특에 입력"),
 ]
+CHANGCHE_KINDS = ("자율자치", "자율", "동아리", "진로", "자유학기")
 
 # 개조식 서술형 종결 판정.
 # 학생부 종결은 사실상 명사형 어미 '-(으)ㅁ'이므로, 어미 목록을 나열하는 대신
 # 마지막 음절의 종성이 'ㅁ'인지 본다. 나열식은 '학생임'·'만들어 감'·'갖춤' 등을
 # 오탐으로 잡는다(2026-08-18 수정).
-_JONG_M = 16  # 한글 종성 인덱스: ㅁ
+_JONG_M = (16, 10)  # 한글 종성 인덱스: ㅁ, ㄻ(만듦·줄어듦)
 
 
 def is_gaejo_ending(sentence):
@@ -137,7 +152,7 @@ def is_gaejo_ending(sentence):
     ch = s[-1]
     if not ("가" <= ch <= "힣"):
         return False
-    return (ord(ch) - ord("가")) % 28 == _JONG_M
+    return (ord(ch) - ord("가")) % 28 in _JONG_M
 
 # 추상적 상찬 표현(금지는 아니나 구체화 필요)
 VAGUE = [
@@ -197,7 +212,7 @@ def check_one(name, text, kind, cap_bytes):
             ("분량임박", "WARN",
              "%d Byte로 목표의 %.1f%%. 학기 분할 입력 시 합계가 상한임에 주의"
              % (b, b / cap_bytes * 100)))
-    elif b < cap_bytes * 0.85:
+    elif b < cap_bytes * 0.90:
         findings.append(
             ("분량미달", "INFO",
              "%d Byte로 목표의 %.1f%%. 목표 90~100%% 구간까지 서술을 더 채울 여지"
@@ -205,10 +220,10 @@ def check_one(name, text, kind, cap_bytes):
 
     # 2. 금칙어
     rules = list(BANNED)
-    if kind in ("행특",):
+    if kind == "행특":
         rules += BANNED_HAENGTEUK
-    else:
-        rules += BANNED_SETEUK
+    elif kind in CHANGCHE_KINDS:
+        rules += BANNED_CHANGCHE
     for label, pattern, desc in rules:
         for m in re.finditer(pattern, text):
             sev = "WARN" if desc.startswith("[주의]") else "ERROR"
@@ -227,6 +242,11 @@ def check_one(name, text, kind, cap_bytes):
         findings.append(
             ("문자:글머리", "WARN",
              "'%s' — %s" % (m.group(0).strip(), BULLET[1])))
+    specials = sorted(set(re.findall(SPECIAL[0], text)))
+    if specials:
+        findings.append(
+            ("문자:특수문자", "WARN",
+             "'%s' — %s" % (" ".join(specials), SPECIAL[1])))
 
     # 4. 문체
     sents = split_sentences(text)
@@ -276,6 +296,18 @@ def check_overlap(results, threshold=0.6):
     return dupes
 
 
+def read_text(path):
+    """UTF-8(BOM 포함)로 읽고, 안 되면 메모장 ANSI 저장본(cp949)으로 읽는다."""
+    with open(path, "rb") as f:
+        raw = f.read()
+    for enc in ("utf-8-sig", "cp949"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            pass
+    return raw.decode("utf-8", errors="replace")
+
+
 def main():
     # Windows 콘솔 기본 인코딩(cp949)에서 출력·입력이 깨지지 않도록 UTF-8로 맞춘다.
     for stream in (sys.stdout, sys.stderr):
@@ -286,7 +318,7 @@ def main():
 
     ap = argparse.ArgumentParser(description="학교생활기록부 서술형 항목 초안 검사")
     ap.add_argument("files", nargs="*", help="검사할 초안 파일(미지정 시 표준입력)")
-    ap.add_argument("--type", dest="kind", default="세특",
+    ap.add_argument("--type", dest="kind", default="세특", choices=list(DEFAULT_LIMITS),
                     help="항목 유형: %s (기본 세특)" % ", ".join(DEFAULT_LIMITS))
     ap.add_argument("--limit", type=int, default=None,
                     help="이번 작업의 목표 분량(Byte). 매번 지정하는 것이 원칙")
@@ -317,10 +349,9 @@ def main():
             if not os.path.isfile(path):
                 print("건너뜀(파일 없음): %s" % path)
                 continue
-            with open(path, "r", encoding="utf-8") as f:
-                results.append(check_one(os.path.basename(path), f.read(), args.kind, cap))
+            results.append(check_one(os.path.basename(path), read_text(path), args.kind, cap))
     else:
-        text = sys.stdin.read()
+        text = sys.stdin.read().lstrip("\ufeff")
         if not text.strip():
             ap.error("검사할 내용이 없습니다. 파일을 지정하거나 표준입력으로 넘기세요.")
         results.append(check_one("(표준입력)", text, args.kind, cap))
