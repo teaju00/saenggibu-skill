@@ -230,7 +230,7 @@ def check_one(name, text, kind, cap_bytes):
     elif b < cap_bytes * 0.90:
         findings.append(
             ("분량미달", "INFO",
-             "%d Byte로 목표의 %.1f%%. 목표 90~100%% 구간까지 서술을 더 채울 여지"
+             "%d Byte로 목표의 %.1f%%. 문장을 늘려 채우지 말고 교사에게 추가 관찰(판단 근거 장면)을 물어 채울 것"
              % (b, b / cap_bytes * 100)))
 
     # 2. 금칙어
