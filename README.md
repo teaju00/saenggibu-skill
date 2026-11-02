@@ -10,7 +10,46 @@
 
 ## 설치
 
-### 1. Claude Code, Codex, Gemini CLI 등 — npx
+쓰는 앱에 맞는 방법 하나만 하면 됩니다. zip 파일은 [Releases](https://github.com/teaju00/saenggibu-skill/releases/latest)에 있습니다. **Claude용과 Gemini용 zip은 폴더 구조가 달라서 서로 바꿔 쓸 수 없습니다.**
+
+| 쓰는 앱 | 방법 |
+|---|---|
+| Claude 데스크톱 앱 · claude.ai 웹 | `saenggibu-claude.zip` 업로드 (아래 1) |
+| Gemini 앱 · gemini.google.com 웹 | `saenggibu-gemini.zip` 업로드 (아래 2) |
+| Antigravity | 폴더 복사 또는 npx (아래 3) |
+| Claude Code · Codex · Gemini CLI · Cursor 등 | 명령 한 줄 (아래 4) |
+| ChatGPT 등 스킬 기능이 없는 서비스 | 지침 붙여 넣기 (아래 5) |
+
+### 1. Claude 데스크톱 앱 · claude.ai
+
+1. Releases에서 `saenggibu-claude.zip`을 내려받습니다. 압축은 풀지 않습니다.
+2. Claude 앱에서 설정 → 기능(Capabilities) → 스킬 → 스킬 업로드를 누르고 zip을 고릅니다.
+3. 같은 화면에서 코드 실행 기능을 켜 두면 검사 스크립트가 돕니다.
+
+사용자 스킬 업로드는 유료 요금제(Pro, Max, Team, Enterprise)에서 됩니다. 데스크톱 앱과 웹은 같은 계정이라 한쪽에서 올리면 양쪽에서 쓰입니다.
+
+### 2. Gemini 앱 · gemini.google.com
+
+1. Releases에서 `saenggibu-gemini.zip`을 내려받습니다. 압축은 풀지 않습니다.
+2. gemini.google.com 왼쪽 메뉴에서 맞춤설정(Customize) → 스킬(Skills) → 만들기(Create) → 업로드(Upload)를 누르고 zip을 고릅니다.
+3. 내용을 확인하고 만들기를 누릅니다.
+
+Google 안내 기준으로 스킬은 Gemini 웹, Mac 앱, 모바일 앱에서 쓸 수 있습니다. Windows에서는 웹(gemini.google.com)에서 올리면 같은 계정의 모바일 앱에서도 쓰입니다. 만 18세 이상 개인 계정이어야 하고 Gemini 앱 활동(Keep Activity)이 켜져 있어야 합니다. **학교·교육청에서 받은 Google Workspace 계정은 이 기능이 막혀 있을 수 있습니다.** 그때는 개인 계정을 쓰거나 아래 5번 방법을 씁니다.
+
+### 3. Antigravity
+
+[Releases](https://github.com/teaju00/saenggibu-skill/releases/latest)에서 `saenggibu-claude.zip`을 내려받아 압축을 풀고, 나온 `school-record-draft` 폴더를 아래 위치에 넣습니다.
+
+- 모든 작업 공간에서 쓰기: `~/.gemini/config/skills/` (Windows는 `C:\Users\<사용자>\.gemini\config\skills\`)
+- 지금 작업 공간에서만 쓰기: 작업 폴더의 `.agents/skills/`
+
+Node.js가 있으면 작업 폴더에서 아래 명령으로도 됩니다.
+
+```bash
+npx skills add teaju00/saenggibu-skill -a antigravity
+```
+
+### 4. Claude Code · Codex · Gemini CLI · Cursor 등 코딩 에이전트
 
 ```bash
 npx skills add teaju00/saenggibu-skill
@@ -18,29 +57,28 @@ npx skills add teaju00/saenggibu-skill
 
 [skills CLI](https://github.com/vercel-labs/skills)가 설치된 에이전트를 찾아 스킬 폴더에 넣습니다. 모든 프로젝트에서 쓰려면 `-g`를 붙입니다.
 
-### 2. Claude Code — 플러그인
-
-Claude Code 안에서 다음을 입력합니다.
+Claude Code는 플러그인으로도 설치할 수 있습니다. Claude Code 안에서 입력합니다.
 
 ```
 /plugin marketplace add teaju00/saenggibu-skill
 /plugin install school-record-draft@saenggibu-skill
 ```
 
-### 3. Claude 웹·데스크톱 앱 (claude.ai)
+Gemini CLI는 자체 명령으로도 됩니다.
 
-1. [Releases](https://github.com/teaju00/saenggibu-skill/releases)에서 `school-record-draft.zip`을 내려받습니다.
-2. claude.ai에서 설정 → 기능(Capabilities) → 스킬에서 zip을 업로드합니다. 코드 실행 기능이 켜져 있어야 검사 스크립트가 돕니다.
+```bash
+gemini skills install https://github.com/teaju00/saenggibu-skill.git --path skills/school-record-draft
+```
 
-### 4. ChatGPT, Gemini 등 다른 AI 서비스
+### 5. ChatGPT 등 스킬 기능이 없는 서비스
 
-스킬 기능이 없는 서비스에서는 `skills/school-record-draft/references/`의 파일을 프로젝트(맞춤형 GPT, Gem)에 넣어 씁니다.
+`skills/school-record-draft/references/`의 파일을 프로젝트(맞춤형 GPT, Gemini Gem 등)에 넣어 씁니다.
 
 1. `0. 내 교과 정보 (교사가 채움).md`에 과목·학년·학기와 이번 학기 **성취기준 원문**을 채웁니다. 과목이 둘 이상이면 과목마다 파일을 하나씩 만듭니다.
 2. `1. 지침 (붙여넣기용).md`의 내용을 지침(instructions) 칸에 붙여 넣습니다. 약 4천 자입니다.
 3. 나머지 md 파일(0, 2, 3, 4, 5)을 지식 파일로 올립니다.
 4. 프로젝트 기능이 없으면 대화 첫머리에 다섯 파일을 첨부하고 "첨부한 1번 지침대로 해 주세요"라고 씁니다.
-5. 분량은 `skills/school-record-draft/assets/바이트 계산기.html`을 내 컴퓨터에서 열어 확인합니다. 인터넷 연결 없이 동작하고 입력한 글이 밖으로 나가지 않습니다.
+5. 분량은 `tools/바이트 계산기.html`을 내려받아 내 컴퓨터에서 열어 확인합니다. 인터넷 연결 없이 동작하고 입력한 글이 밖으로 나가지 않습니다.
 
 ## 쓰는 방법
 
@@ -80,7 +118,9 @@ skills/school-record-draft/
     4. 교사 입력 양식.md                      관찰 메모 양식
     5. 작성 예시.md                           구조를 보기 위한 가상 예시
   scripts/student_record_check.py           초안 기계 검사(표준 라이브러리만 사용)
-  assets/바이트 계산기.html                 오프라인 Byte 계산기
+tools/
+  바이트 계산기.html                        교사용 오프라인 Byte 계산기
+  build_release.py                          Releases zip 두 개(Claude용, Gemini용)를 만드는 스크립트
 ```
 
 ## 범위와 한계
