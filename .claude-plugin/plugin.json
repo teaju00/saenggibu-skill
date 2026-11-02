@@ -1,6 +1,6 @@
 {
   "name": "school-record-draft",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "학교생활기록부 서술형 항목(세특·창체·자유학기·행특) 초안 작성 스킬. 중학교 2026학년도 기재요령 기준.",
   "author": { "name": "teaju00" },
   "repository": "https://github.com/teaju00/saenggibu-skill",

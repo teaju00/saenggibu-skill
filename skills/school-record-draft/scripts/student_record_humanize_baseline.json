@@ -1,0 +1,14 @@
+{
+ "version": "학생부-1",
+ "source": "borrowed = im-not-ai v2.3.2 references/baseline.json genres.essay(KatFish, Park et al. 인간 470 vs LLM 1,624편). 원본 장르 매핑 '공적/기타 → essay'를 따랐다. genres.학생부 = calibrate 로 채운다(사람이 쓴 학생부 글의 평균 · 표준편차 · 편수만).",
+ "notes": "학생부 셀이 n>=30 으로 모두 차기 전에는 baseline_status='빌림'이며, z 는 참고값으로만 쓴다(P1 판정 · ★ 표시 제외).",
+ "borrowed": {
+  "comma_inclusion_rate": {"human": 26.31, "ai": 61.03, "unit": "percent"},
+  "comma_usage_rate": {"human": 1.13, "ai": 2.56, "unit": "per_sentence"},
+  "comma_segment_length": {"human": 4.35, "ai": 8.56, "unit": "eojeol_per_segment"},
+  "ending_comma_rate": {"human": 4.1, "ai": 19.83, "unit": "percent"}
+ },
+ "genres": {
+  "학생부": {}
+ }
+}
