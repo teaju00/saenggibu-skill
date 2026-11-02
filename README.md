@@ -65,7 +65,7 @@ Claude Code는 플러그인으로도 설치할 수 있습니다. Claude Code 안
 /plugin install school-record-draft@saenggibu-skill
 ```
 
-플러그인으로 설치하면 `/생기부`로 부를 수 있습니다. 스킬 이름 그대로 `/school-record-draft`도 됩니다.
+플러그인으로 설치하면 `/생기부`로 부를 수 있습니다. 스킬 이름 그대로 `/school-record-draft`도 됩니다. zip으로 앱에 올렸거나 다른 에이전트에서 쓸 때는 "생기부 써줘", "세특 초안"처럼 말로 부르면 스킬이 켜집니다.
 
 Gemini CLI는 자체 명령으로도 됩니다.
 
