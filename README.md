@@ -85,6 +85,8 @@ gemini skills install https://github.com/teaju00/saenggibu-skill.git --path skil
 
 ## 쓰는 방법
 
+준비물, 질문에 답하는 법, 분량이 모자랄 때, 여러 학생 한꺼번에, 사용량, 자주 묻는 것은 **[스킬 사용 가이드](docs/스킬%20사용%20가이드.md)**에 자세히 적었습니다.
+
 1. "2학년 과학 세특 써 줘"처럼 항목을 말하고, 관찰 메모가 있으면 함께 붙입니다. `4. 교사 입력 양식`을 채워 붙이면 질문이 줄어듭니다.
 2. AI가 먼저 묻습니다. 아는 것만 답하고 모르면 "없음"이라고 하면 됩니다.
 3. 초안과 함께 나오는 '교사 확인 필요' 목록을 하나씩 확인합니다.
@@ -125,6 +127,7 @@ skills/school-record-draft/
   scripts/student_record_humanize.py        AI 문체 점검의 점수·경로·서법 복원·게이트(im-not-ai 학생부판)
   scripts/student_record_humanize_baseline.json  지표 기준선(처음엔 원본 에세이 기준 빌림, calibrate 로 보정)
 commands/생기부.md                          Claude Code 플러그인용 `/생기부` 별칭
+docs/스킬 사용 가이드.md                     준비부터 나이스 입력까지 사용 안내
 tools/
   바이트 계산기.html                        교사용 오프라인 Byte 계산기
   build_release.py                          Releases zip 두 개(Claude용, Gemini용)를 만드는 스크립트
