@@ -19,7 +19,7 @@
 | Gemini 앱 · gemini.google.com 웹 | `saenggibu-gemini.zip` 업로드 (아래 2) |
 | Antigravity | 폴더 복사 또는 npx (아래 3) |
 | Claude Code · Codex · Gemini CLI · Cursor 등 | 명령 한 줄 (아래 4) |
-| ChatGPT 등 스킬 기능이 없는 서비스 | 지침 붙여 넣기 (아래 5) |
+| ChatGPT 등 스킬 기능이 없는 서비스 | `saenggibu-chatgpt.zip` 풀어서 지침 붙여 넣기 (아래 5) |
 
 ### 1. Claude 데스크톱 앱 · claude.ai
 
@@ -75,13 +75,13 @@ gemini skills install https://github.com/teaju00/saenggibu-skill.git --path skil
 
 ### 5. ChatGPT 등 스킬 기능이 없는 서비스
 
-`skills/school-record-draft/references/`의 파일을 프로젝트(맞춤형 GPT, Gemini Gem 등)에 넣어 씁니다.
+Releases에서 `saenggibu-chatgpt.zip`을 내려받아 압축을 풉니다. 지침 파일 일곱 개, 바이트 계산기, `먼저 읽어 주세요.md`(설정 순서 — [ChatGPT 설정 방법](docs/ChatGPT%20설정%20방법.md)과 같음)가 들어 있습니다. 프로젝트(맞춤형 GPT, Gemini Gem 등)에 넣어 씁니다.
 
 1. `0. 내 교과 정보 (교사가 채움).md`에 과목·학년·학기와 이번 학기 **성취기준 원문**을 채웁니다. 과목이 둘 이상이면 과목마다 파일을 하나씩 만듭니다.
 2. `1. 지침 (붙여넣기용).md`의 내용을 지침(instructions) 칸에 붙여 넣습니다. 약 4천7백 자입니다.
 3. 나머지 md 파일(0, 2, 3, 4, 5, 6)을 지식 파일로 올립니다.
-4. 프로젝트 기능이 없으면 대화 첫머리에 여섯 파일을 첨부하고 "첨부한 1번 지침대로 해 주세요"라고 씁니다.
-5. 분량은 `tools/바이트 계산기.html`을 내려받아 내 컴퓨터에서 열어 확인합니다. 인터넷 연결 없이 동작하고 입력한 글이 밖으로 나가지 않습니다.
+4. 프로젝트 기능이 없으면 대화 첫머리에 md 파일 일곱 개(1번 포함)를 첨부하고 "첨부한 1번 지침대로 해 주세요"라고 씁니다.
+5. 분량은 zip 안의 `바이트 계산기.html`을 내 컴퓨터에서 열어 확인합니다. 인터넷 연결 없이 동작하고 입력한 글이 밖으로 나가지 않습니다.
 
 ## 쓰는 방법
 
@@ -128,9 +128,10 @@ skills/school-record-draft/
   scripts/student_record_humanize_baseline.json  지표 기준선(처음엔 원본 에세이 기준 빌림, calibrate 로 보정)
 commands/생기부.md                          Claude Code 플러그인용 `/생기부` 별칭
 docs/스킬 사용 가이드.md                     준비부터 나이스 입력까지 사용 안내
+docs/ChatGPT 설정 방법.md                    ChatGPT용 zip 안의 '먼저 읽어 주세요'
 tools/
   바이트 계산기.html                        교사용 오프라인 Byte 계산기
-  build_release.py                          Releases zip 두 개(Claude용, Gemini용)를 만드는 스크립트
+  build_release.py                          Releases zip 세 개(Claude용, Gemini용, ChatGPT용)를 만드는 스크립트
 ```
 
 ## 범위와 한계
